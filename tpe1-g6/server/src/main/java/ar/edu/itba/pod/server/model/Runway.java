@@ -1,10 +1,14 @@
-package ar.edu.itba.pod.api.model;
+package ar.edu.itba.pod.server.model;
 
+import ar.edu.itba.pod.api.model.Flight;
+import ar.edu.itba.pod.api.model.RunwayType;
+
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class Runway {
+public class Runway implements Serializable {
     private final String name;
     private final RunwayType type;
     private boolean isOpen;
@@ -18,9 +22,10 @@ public class Runway {
     public Runway(final String name, final RunwayType type) {
         this.name = name;
         this.type = type;
-        this.isOpen = false;
+        // Runways are open by default
+        this.isOpen = true;
         this.flightsQueue = new LinkedList<>();
-        this.departures = new LinkedList<>();
+        this.departures = new ArrayList<>();
     }
 
     public String getName() {

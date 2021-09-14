@@ -1,15 +1,18 @@
 package ar.edu.itba.pod.api.interfaces;
 
-import ar.edu.itba.pod.api.model.Runway;
+import ar.edu.itba.pod.api.exceptions.InvalidRunwayOperationException;
+import ar.edu.itba.pod.api.exceptions.RunwayAlreadyExistsException;
+import ar.edu.itba.pod.api.exceptions.RunwayNotFoundException;
 import ar.edu.itba.pod.api.model.RunwayType;
 
-import javax.management.InstanceAlreadyExistsException;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
-public interface AdminService {
-    public void addRunway(String name, RunwayType type);
-    public boolean isOpen(String name);
-    public void openRunway(String name);
-    public void closeRunway(String name);
-    public void takeOffOrder();
-    public void reorderRunways();
+public interface AdminService extends Remote {
+    void addRunway(String name, RunwayType type) throws RemoteException, RunwayAlreadyExistsException;
+    boolean isOpen(String name) throws RemoteException, RunwayNotFoundException;
+    void openRunway(String name) throws RemoteException, RunwayNotFoundException, InvalidRunwayOperationException;
+    void closeRunway(String name) throws RemoteException, RunwayNotFoundException, InvalidRunwayOperationException;
+    void takeOffOrder() throws RemoteException;
+    void reorderRunways() throws RemoteException;
 }

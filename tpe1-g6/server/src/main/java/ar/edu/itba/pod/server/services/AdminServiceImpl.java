@@ -1,9 +1,9 @@
 package ar.edu.itba.pod.server.services;
 
 import ar.edu.itba.pod.api.interfaces.AdminService;
-import ar.edu.itba.pod.api.model.Airport;
+import ar.edu.itba.pod.server.model.Airport;
 import ar.edu.itba.pod.api.model.Flight;
-import ar.edu.itba.pod.api.model.Runway;
+import ar.edu.itba.pod.server.model.Runway;
 
 import java.util.*;
 

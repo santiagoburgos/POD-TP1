@@ -1,11 +1,15 @@
-package ar.edu.itba.pod.api.model;
+package ar.edu.itba.pod.server.model;
 
+import ar.edu.itba.pod.api.model.Flight;
+import ar.edu.itba.pod.api.model.RunwayType;
+
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-public class Airport {
+public class Airport implements Serializable {
     private final List<Runway> runways;
 
     private final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock(true);
@@ -13,7 +17,7 @@ public class Airport {
     private final Lock writeLock = reentrantLock.writeLock();
 
     public Airport() {
-        this.runways = new LinkedList<>();
+        this.runways = new ArrayList<>();
     }
 
     public Map<RunwayType, List<Runway>> getRunwaysByType(){

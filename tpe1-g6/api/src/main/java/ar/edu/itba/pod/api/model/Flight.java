@@ -1,15 +1,14 @@
 package ar.edu.itba.pod.api.model;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.io.Serializable;
 
-public class Flight {
+public class Flight implements Serializable {
     private final String flightId;
     private final String destCode;
     private final String airline;
     private final RunwayType minType;
 
-    public Flight(String flightId, String destCode, String airline, RunwayType minType) {
+    public Flight(final String flightId, final String destCode, final String airline, final RunwayType minType) {
         this.flightId = flightId;
         this.destCode = destCode;
         this.airline = airline;
