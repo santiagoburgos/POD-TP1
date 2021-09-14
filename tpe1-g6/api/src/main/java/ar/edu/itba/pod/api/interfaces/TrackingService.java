@@ -9,5 +9,5 @@ import java.rmi.RemoteException;
 
 public interface TrackingService extends Remote {
     // If airline does not match the airline for the flight id then TrackingNotAllowedException will be thrown
-    void register(String flightId, String airline, FlightEventCallback callback) throws RemoteException, TrackingNotAllowedException, FlightNotFoundException;
+    void register(int flightId, String airline, FlightEventCallback callback) throws RemoteException, TrackingNotAllowedException, FlightNotFoundException;
 }

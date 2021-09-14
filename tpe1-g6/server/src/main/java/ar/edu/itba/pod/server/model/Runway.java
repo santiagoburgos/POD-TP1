@@ -5,19 +5,14 @@ import ar.edu.itba.pod.api.model.RunwayType;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
-public class Runway implements Serializable {
+public class Runway implements Serializable, Comparable<Runway> {
     private final String name;
     private final RunwayType type;
     private boolean isOpen;
     private final Queue<Flight> flightsQueue;
     private final List<Flight> departures;
-
-    private final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock(true);
-    private final Lock readLock = reentrantLock.readLock();
-    private final Lock writeLock = reentrantLock.writeLock();
 
     public Runway(final String name, final RunwayType type) {
         this.name = name;
@@ -36,69 +31,59 @@ public class Runway implements Serializable {
         return type;
     }
 
-    public boolean isOpen() {
-        readLock.lock();
-        final boolean returnStatus = this.isOpen;
-        readLock.unlock();
+    public boolean notEmpty() {
+        return !flightsQueue.isEmpty();
+    }
 
-        return returnStatus;
+    public boolean isOpen() {
+        return isOpen;
     }
 
     public void openRunway() {
-        writeLock.lock();
         this.isOpen = true;
-        writeLock.unlock();
     }
 
     public void closeRunway() {
-        writeLock.lock();
         this.isOpen = false;
-        writeLock.unlock();
     }
 
-    public void addFlightToQueue(Flight flight) {
-        Flight copyFlight = flight.copy();
+    public boolean addFlightToQueue(Flight flight) {
+        return flightsQueue.offer(flight);
+    }
 
-        writeLock.lock();
-        flightsQueue.add(copyFlight);
-        writeLock.unlock();
+    public void updateWaitTime() {
+        flightsQueue.forEach(Flight::increaseWaitTime);
     }
 
     public void makeDeparture() {
-        writeLock.lock();
-        Optional<Flight> flight = Optional.ofNullable(flightsQueue.poll());
-        flight.ifPresent(departures::add);
-        writeLock.unlock();
+        Optional.ofNullable(flightsQueue.poll()).ifPresent(departures::add);
     }
 
-    public Queue<Flight> getQueue() {
-        readLock.lock();
-        Queue<Flight> queue = new LinkedList<>(flightsQueue);
-        readLock.unlock();
-
-        return queue;
+    public List<Flight> getDeparted(String airline) {
+        return departures.stream().filter(f -> airline == null || f.getAirline().equals(airline)).collect(Collectors.toList());
     }
 
-    public void emptyQueue() {
-        writeLock.lock();
-        flightsQueue.clear();
-        writeLock.unlock();
+    public Optional<Flight> findFlight(int flightId) {
+        return flightsQueue.stream().filter(f -> f.getFlightId() == flightId).findFirst();
     }
 
-    public List<Flight> getDepartures() {
-        readLock.lock();
-        List<Flight> flights = new LinkedList<>(departures);
-        readLock.unlock();
-
-        return flights;
+    public Optional<Flight> removeFlight() {
+        return Optional.ofNullable(flightsQueue.poll());
     }
 
-    public int flightsInQueue() {
-        readLock.lock();
-        int size = flightsQueue.size();
-        readLock.unlock();
+    public boolean hasFlight(int flightId) {
+        return flightsQueue.stream().anyMatch(f -> f.getFlightId() == flightId);
+    }
 
-        return size;
+    // This is kinda ugly, see better alternatives
+    public int getAhead(int flightId) {
+        int ahead = 0;
+        for (Flight f: flightsQueue) {
+            if (f.getFlightId() == flightId)
+                return ahead;
+            ahead++;
+        }
+        return ahead;
     }
 
     @Override
@@ -112,5 +97,13 @@ public class Runway implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    @Override
+    public int compareTo(Runway o) {
+        int compQueue = flightsQueue.size() - o.flightsQueue.size();
+        int compType = type.value.compareTo(o.type.value);
+        int compName = name.compareTo(o.name);
+        return compQueue == 0 ? (compType == 0 ? compName : compType) : compQueue;
     }
 }
