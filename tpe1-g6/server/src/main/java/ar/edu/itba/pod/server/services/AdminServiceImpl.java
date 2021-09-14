@@ -93,7 +93,7 @@ public class AdminServiceImpl implements AdminService {
 
         allFlights.sort((o1, o2) -> {
             int compType = o1.getMinType().compareTo(o2.getMinType());
-            int compName = o1.getFlightId().compareTo(o2.getFlightId());
+            int compName = o1.getFlightId() - o2.getFlightId();
             if(compType == 0) return compName;
             return compType;
         });
