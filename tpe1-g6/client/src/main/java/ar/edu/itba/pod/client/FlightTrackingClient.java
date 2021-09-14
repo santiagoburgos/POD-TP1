@@ -18,9 +18,9 @@ public class FlightTrackingClient {
     public static void main(final String[] args){
 
         try{
-            String serverAddress = Optional.ofNullable(System.getProperty("serverAddress")).orElseThrow(Exception::new);
-            String airlineName = Optional.ofNullable(System.getProperty("airlineName")).orElseThrow(Exception::new);
-            String fc = Optional.ofNullable(System.getProperty("flightCode")).orElseThrow(Exception::new);
+            String serverAddress = Optional.ofNullable(System.getProperty("serverAddress")).orElseThrow(IllegalArgumentException::new);
+            String airlineName = Optional.ofNullable(System.getProperty("airlineName")).orElseThrow(IllegalArgumentException::new);
+            String fc = Optional.ofNullable(System.getProperty("flightCode")).orElseThrow(IllegalArgumentException::new);
             int flightCode = Integer.parseInt(fc);
 
             logger.info("tpe1-g6 Flight Tracking Client Starting ...");
