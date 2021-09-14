@@ -10,5 +10,5 @@ public interface FlightEventCallback extends Remote, Serializable {
     // Called when a flight in front of the tracked flight departed, updating the position in the departure queue
     void flightUpdated(int flightId, String destCode, String runway, int flightsAhead) throws RemoteException;
     // Called when the tracked flight departed
-    void flightDeparted(int flightId) throws RemoteException;
+    void flightDeparted(int flightId, String destCode, String runway) throws RemoteException;
 }
