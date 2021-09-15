@@ -38,7 +38,7 @@ public class RunRunwayClient {
             registry = LocateRegistry.getRegistry(serverAddress);
             runwayService = (RunwayService) Naming.lookup("runway");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.toString());
             return;
         }
 
@@ -61,7 +61,7 @@ public class RunRunwayClient {
                 // print error
                 logger.info(String.format("Cannot assign Flight %d.", flight.getFlightId()));
             } catch (RemoteException re) {
-                logger.error(re.getMessage());
+                logger.error(re.toString());
             }
         }
         logger.info(String.format("%d flights assigned.", assignedFlights));
@@ -85,10 +85,10 @@ public class RunRunwayClient {
 
         } catch (IOException ioe) {
             // Do sth
-            logger.error(ioe.getMessage());
+            logger.error(ioe.toString());
         } catch (RuntimeException re) {
             // other types of exception
-            logger.error(re.getMessage());
+            logger.error(re.toString());
         }
 
         return flightList;
