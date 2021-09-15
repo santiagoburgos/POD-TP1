@@ -1,7 +1,6 @@
-import ar.edu.itba.pod.api.exceptions.InvalidRunwayOperationException;
-import ar.edu.itba.pod.api.exceptions.RunwayAlreadyExistsException;
-import ar.edu.itba.pod.api.exceptions.RunwayNotAssignedException;
-import ar.edu.itba.pod.api.exceptions.RunwayNotFoundException;
+import ar.edu.itba.pod.api.callbacks.FlightEventCallback;
+import ar.edu.itba.pod.api.exceptions.*;
+import ar.edu.itba.pod.api.model.Flight;
 import ar.edu.itba.pod.api.model.RunwayType;
 import ar.edu.itba.pod.server.model.Runway;
 import ar.edu.itba.pod.server.servants.Servant;
@@ -10,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.Optional;
 
 public class ServantTest {
@@ -25,6 +25,7 @@ public class ServantTest {
     private final int flightId2 = 2;
     private final String flightCode1 = "DEST";
     private final String flightAirline1 = "Airline";
+    private final String flightAirline2 = "Airline2";
     private final RunwayType flightMinCategory = RunwayType.B;
 
     @Before
@@ -119,7 +120,105 @@ public class ServantTest {
         servant.reorderRunways();
 
         Assert.assertTrue(servant.getRunwayByName(runwayName2).get().notEmpty());
-
     }
 
+    @Test
+    public void getAllDepartures() throws RemoteException, QueryNotAllowedException {
+        servant.takeOffOrder();
+
+        List<Flight> departures = servant.getDepartures(null, null);
+        Assert.assertEquals(1, departures.size());
+    }
+
+    @Test
+    public void getRunwayDepartures() throws RemoteException, QueryNotAllowedException {
+        servant.takeOffOrder();
+
+        List<Flight> departures = servant.getDepartures(null, flightAirline1);
+        Assert.assertEquals(1, departures.size());
+    }
+
+    @Test
+    public void getAirlineDepartures() throws RemoteException, QueryNotAllowedException {
+        servant.takeOffOrder();
+
+        List<Flight> departures = servant.getDepartures(runwayName, null);
+        Assert.assertEquals(1, departures.size());
+    }
+
+    @Test(expected = QueryNotAllowedException.class)
+    public void getAirlineDAndRunwayDepartures() throws RemoteException, QueryNotAllowedException {
+        servant.takeOffOrder();
+        servant.getDepartures(runwayName, flightAirline1);
+    }
+
+    @Test
+    public void requestRunway() throws RemoteException, RunwayNotAssignedException {
+        Assert.assertFalse(servant.getRunwayByName(runwayName).get().hasFlight(flightId2));
+        servant.requestRunway(flightId2, flightCode1, flightAirline1, flightMinCategory);
+        Assert.assertTrue(servant.getRunwayByName(runwayName).get().hasFlight(flightId2));
+    }
+
+    @Test(expected = RunwayNotAssignedException.class)
+    public void requestRunwayNoAvailable() throws RemoteException, RunwayNotAssignedException {
+        Assert.assertFalse(servant.getRunwayByName(runwayName).get().hasFlight(flightId2));
+        servant.requestRunway(flightId2, flightCode1, flightAirline1, RunwayType.F);
+    }
+
+    @Test
+    public void register() throws TrackingNotAllowedException, RemoteException, FlightNotFoundException {
+        FlightEventCallback callback = new FlightEventCallback() {
+            @Override
+            public void flightAssigned(int flightId, String destCode, String runway, int flightsAhead) throws RemoteException {
+            }
+
+            @Override
+            public void flightUpdated(int flightId, String destCode, String runway, int flightsAhead) throws RemoteException {
+            }
+
+            @Override
+            public void flightDeparted(int flightId, String destCode, String runway) throws RemoteException {
+            }
+        };
+
+        servant.register(flightId1, flightAirline1, callback);
+    }
+
+    @Test(expected = FlightNotFoundException.class)
+    public void registerFlightNotFound() throws TrackingNotAllowedException, RemoteException, FlightNotFoundException {
+        FlightEventCallback callback = new FlightEventCallback() {
+            @Override
+            public void flightAssigned(int flightId, String destCode, String runway, int flightsAhead) throws RemoteException {
+            }
+
+            @Override
+            public void flightUpdated(int flightId, String destCode, String runway, int flightsAhead) throws RemoteException {
+            }
+
+            @Override
+            public void flightDeparted(int flightId, String destCode, String runway) throws RemoteException {
+            }
+        };
+
+        servant.register(flightId2, flightAirline1, callback);
+    }
+
+    @Test(expected = FlightNotFoundException.class)
+    public void registerWrongAirline() throws TrackingNotAllowedException, RemoteException, FlightNotFoundException {
+        FlightEventCallback callback = new FlightEventCallback() {
+            @Override
+            public void flightAssigned(int flightId, String destCode, String runway, int flightsAhead) throws RemoteException {
+            }
+
+            @Override
+            public void flightUpdated(int flightId, String destCode, String runway, int flightsAhead) throws RemoteException {
+            }
+
+            @Override
+            public void flightDeparted(int flightId, String destCode, String runway) throws RemoteException {
+            }
+        };
+
+        servant.register(flightId2, flightAirline2, callback);
+    }
 }
