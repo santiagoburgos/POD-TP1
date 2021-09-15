@@ -1,7 +1,6 @@
 package ar.edu.itba.pod.client;
 
 import ar.edu.itba.pod.api.interfaces.AdminService;
-import ar.edu.itba.pod.api.model.Flight;
 import ar.edu.itba.pod.api.model.ReorderStatus;
 import ar.edu.itba.pod.api.model.RunwayType;
 import org.slf4j.Logger;
@@ -39,7 +38,7 @@ public class AdminClient {
             logger.info("tpe1-g6 Client Starting ...");
 
             final Registry registry = LocateRegistry.getRegistry(serverAddress);
-            final AdminService adminService = (AdminService) Naming.lookup("adminService");
+            final AdminService adminService = (AdminService) Naming.lookup("admin");
 
             logger.info("client Started ...");
 

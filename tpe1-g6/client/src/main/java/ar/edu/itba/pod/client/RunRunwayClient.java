@@ -35,7 +35,7 @@ public class RunRunwayClient {
         final RunwayService runwayService;
         try {
             final Registry registry = LocateRegistry.getRegistry(serverAddress);
-            runwayService = (RunwayService) Naming.lookup("runwayService");
+            runwayService = (RunwayService) Naming.lookup("runway");
         } catch (Exception e) {
             logger.error(e.getMessage());
             return;
