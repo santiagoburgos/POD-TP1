@@ -19,7 +19,7 @@ public class FlightTrackingClient {
 
         try{
             String serverAddress = Optional.ofNullable(System.getProperty("serverAddress")).orElseThrow(IllegalArgumentException::new);
-            String airlineName = Optional.ofNullable(System.getProperty("airlineName")).orElseThrow(IllegalArgumentException::new);
+            String airlineName = Optional.ofNullable(System.getProperty("airline")).orElseThrow(IllegalArgumentException::new);
             String fc = Optional.ofNullable(System.getProperty("flightCode")).orElseThrow(IllegalArgumentException::new);
             int flightCode = Integer.parseInt(fc);
 
