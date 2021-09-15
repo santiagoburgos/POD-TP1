@@ -15,7 +15,7 @@ public class Airport implements Serializable {
         return runways.stream().filter(r -> r.getName().equals(name)).findFirst();
     }
 
-    // Returning a copy since we don't want to allow the removing of runways
+    // Returning a copy since we don't want to allow the removing of runways, but the copy has runway references since we want to change stuff about them
     public List<Runway> getRunways() {
         return new LinkedList<>(runways);
     }
