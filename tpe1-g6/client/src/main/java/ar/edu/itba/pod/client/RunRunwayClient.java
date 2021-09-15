@@ -72,7 +72,7 @@ public class RunRunwayClient {
         Path pathToFile = Paths.get(fileName);
 
         try {
-            BufferedReader br = Files.newBufferedReader(pathToFile, StandardCharsets.US_ASCII);
+            BufferedReader br = Files.newBufferedReader(pathToFile, StandardCharsets.UTF_8);
 
             // to check first line and skip because it is header
             String line = br.readLine();
