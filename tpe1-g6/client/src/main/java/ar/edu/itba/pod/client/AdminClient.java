@@ -67,7 +67,7 @@ public class AdminClient {
                 case REORDER:
                     ReorderStatus  rStatus = adminService.reorderRunways();
                     rStatus.getFailed().stream().forEach(f ->  {logger.info("Cannot assign Flight " + f.getFlightId() + ".");});
-                    logger.info( rStatus.getAssigned() + "flights assigned.");
+                    logger.info( rStatus.getAssigned() + " flights assigned.");
                     break;
             }
 
