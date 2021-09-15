@@ -24,7 +24,7 @@ public class AdminClient {
             String serverAddress = Optional.ofNullable(System.getProperty("serverAddress")).orElseThrow(IllegalArgumentException::new);
             ActionType action = ActionType.getEnumOf(System.getProperty("action")).orElseThrow(IllegalArgumentException::new);
             String runwayName = System.getProperty("runway");
-            RunwayType category = RunwayType.valueOf(System.getProperty("category"));
+            RunwayType category = System.getProperty("category")==null?null:(RunwayType.valueOf(System.getProperty("category")));
 
             if (action == ActionType.ADD) {
                 if (category == null || runwayName == null) {
