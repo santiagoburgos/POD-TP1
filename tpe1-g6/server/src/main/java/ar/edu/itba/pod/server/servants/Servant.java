@@ -140,10 +140,8 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
             flights.forEach(f -> {
                 Optional<Runway> availableRunway = runways.stream().filter(Runway::isOpen).filter(r -> f.getMinType().value.compareTo(r.getType().value) <= 0)
                         .min(Comparator.naturalOrder());
-                availableRunway.flatMap(r -> r.addFlightToQueue(f)).ifPresent(uf -> {
-                    assigned.add(uf);
-                    flights.remove(f);
-                });
+                //flights.remove(f);
+                availableRunway.flatMap(r -> r.addFlightToQueue(f)).ifPresent(assigned::add);
             });
         } finally { writeLock.unlock(); }
 
@@ -152,6 +150,7 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
             notifyRunwayAssigned(f.getFlightId(), f.getDestCode(), f.getAssignedRunway(), f.getAhead());
         });
 
+        flights.removeAll(assigned);
         return new ReorderStatus(flights, assigned.size());
     }
 
@@ -210,6 +209,10 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
             List<FlightEventCallback> callbacks = trackers.computeIfAbsent(flightId, k -> new ArrayList<>());
             callbacks.add(callback);
         } finally { writeLock.unlock(); }
+    }
+
+    public Optional<Runway> getRunwayByName(String name) {
+        return airport.getRunway(name);
     }
 
     // Notification handlers
