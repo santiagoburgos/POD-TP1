@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class RunRunwayClient {
-    private static Logger logger = LoggerFactory.getLogger(Client.class);
+    private static Logger logger = LoggerFactory.getLogger(RunRunwayClient.class);
 
     public static void main(String[] args) {
 
