@@ -41,19 +41,24 @@ public class RunQueryClient {
             registry = LocateRegistry.getRegistry(serverAddress);
             consultService = (ConsultService) Naming.lookup("consult");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.toString());
             return;
         }
 
         List<Flight> flightList;
         try {
             flightList = consultService.getDepartures(runwayName, airlineName);
-            writeFlightFile(fileName, flightList);
+
+            // only write to file if list is not empty
+            if(!flightList.isEmpty())
+                writeFlightFile(fileName, flightList);
+            else
+                logger.info("No flights matched query conditions");
         } catch (QueryNotAllowedException qnae) {
             // should not fall here but specified for completeness
             logger.error("QueryNotAllowedException: Both airline and runway were provided, specify only either of them");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.toString());
         }
 
     }

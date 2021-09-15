@@ -9,4 +9,4 @@ done
 
 export CLASSPATH
 
-rmiregistry -J-Djava.rmi.server.logCalls=true  $*
+rmiregistry -J-Djava.rmi.server.logCalls=true  "$@"
