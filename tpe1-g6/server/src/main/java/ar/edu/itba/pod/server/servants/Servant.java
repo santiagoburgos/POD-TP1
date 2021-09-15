@@ -137,12 +137,9 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
             while (runways.stream().anyMatch(Runway::notEmpty)) {
                 runways.stream().map(Runway::removeFlight).filter(Optional::isPresent).map(Optional::get).forEach(flights::add);
             }
-            flights.forEach(f -> {
-                Optional<Runway> availableRunway = runways.stream().filter(Runway::isOpen).filter(r -> f.getMinType().value.compareTo(r.getType().value) <= 0)
-                        .min(Comparator.naturalOrder());
-                //flights.remove(f);
-                availableRunway.flatMap(r -> r.addFlightToQueue(f)).ifPresent(assigned::add);
-            });
+            flights.forEach(f -> runways.stream().filter(Runway::isOpen)
+                    .filter(r -> f.getMinType().value.compareTo(r.getType().value) <= 0).min(Comparator.naturalOrder())
+                    .flatMap(r -> r.addFlightToQueue(f)).ifPresent(assigned::add));
         } finally { writeLock.unlock(); }
 
         // Notifying the assignments
