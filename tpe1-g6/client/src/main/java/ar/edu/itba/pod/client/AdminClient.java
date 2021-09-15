@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.rmi.Naming;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class AdminClient {
@@ -21,7 +22,7 @@ public class AdminClient {
         try {
 
             String serverAddress = Optional.ofNullable(System.getProperty("serverAddress")).orElseThrow(IllegalArgumentException::new);
-            ActionType action = ActionType.valueOf(System.getProperty("action"));
+            ActionType action = ActionType.getEnumOf(System.getProperty("action")).orElseThrow(IllegalArgumentException::new);
             String runwayName = System.getProperty("runway");
             RunwayType category = RunwayType.valueOf(System.getProperty("category"));
 
@@ -92,6 +93,10 @@ enum ActionType {
 
     ActionType(final String value) {
         this.value = value;
+    }
+
+    public static Optional<ActionType> getEnumOf(String value) {
+        return Arrays.stream(values()).filter(act -> act.value.equals(value)).findFirst();
     }
 
 }
