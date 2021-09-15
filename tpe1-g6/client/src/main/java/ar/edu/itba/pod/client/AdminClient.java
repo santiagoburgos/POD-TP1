@@ -21,18 +21,18 @@ public class AdminClient {
 
         try {
 
-            String serverAddress = Optional.ofNullable(System.getProperty("serverAddress")).orElseThrow(IllegalArgumentException::new);
-            ActionType action = ActionType.getEnumOf(System.getProperty("action")).orElseThrow(IllegalArgumentException::new);
+            String serverAddress = Optional.ofNullable(System.getProperty("serverAddress")).orElseThrow(() -> new IllegalArgumentException("'serverAddress' argument needed."));
+            ActionType action = ActionType.getEnumOf(System.getProperty("action")).orElseThrow(() -> new IllegalArgumentException("Bad action."));
             String runwayName = System.getProperty("runway");
             RunwayType category = System.getProperty("category")==null?null:(RunwayType.valueOf(System.getProperty("category")));
 
             if (action == ActionType.ADD) {
                 if (category == null || runwayName == null) {
-                    throw new IllegalArgumentException();
+                    throw new IllegalArgumentException("One or more arguments missing.");
                 }
             } else if (action == ActionType.OPEN || action == ActionType.CLOSE || action == ActionType.STATUS) {
                 if (runwayName == null) {
-                    throw new IllegalArgumentException();
+                    throw new IllegalArgumentException("'runway' argument needed.");
                 }
             }
 

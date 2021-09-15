@@ -19,8 +19,8 @@ public class FlightTrackingClient {
 
         try{
             String serverAddress = Optional.ofNullable(System.getProperty("serverAddress")).orElseThrow(IllegalArgumentException::new);
-            String airlineName = Optional.ofNullable(System.getProperty("airline")).orElseThrow(IllegalArgumentException::new);
-            String fc = Optional.ofNullable(System.getProperty("flightCode")).orElseThrow(IllegalArgumentException::new);
+            String airlineName = Optional.ofNullable(System.getProperty("airline")).orElseThrow(() -> new IllegalArgumentException("'airline' argument needed."));
+            String fc = Optional.ofNullable(System.getProperty("flightCode")).orElseThrow(() -> new IllegalArgumentException("'flightCode' argument needed."));
             int flightCode = Integer.parseInt(fc);
 
             logger.info("tpe1-g6 Flight Tracking Client Starting ...");
