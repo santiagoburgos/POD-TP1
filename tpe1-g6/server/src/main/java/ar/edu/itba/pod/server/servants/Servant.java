@@ -208,6 +208,7 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
         } finally { writeLock.unlock(); }
     }
 
+    // For testing only
     public Optional<Runway> getRunwayByName(String name) {
         return airport.getRunway(name);
     }

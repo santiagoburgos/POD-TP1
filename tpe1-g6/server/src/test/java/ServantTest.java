@@ -203,7 +203,7 @@ public class ServantTest {
         servant.register(flightId2, flightAirline1, callback);
     }
 
-    @Test(expected = FlightNotFoundException.class)
+    @Test(expected = TrackingNotAllowedException.class)
     public void registerWrongAirline() throws TrackingNotAllowedException, RemoteException, FlightNotFoundException {
         FlightEventCallback callback = new FlightEventCallback() {
             @Override
@@ -219,6 +219,6 @@ public class ServantTest {
             }
         };
 
-        servant.register(flightId2, flightAirline2, callback);
+        servant.register(flightId1, flightAirline2, callback);
     }
 }
