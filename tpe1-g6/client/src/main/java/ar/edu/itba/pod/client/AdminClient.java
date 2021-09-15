@@ -73,7 +73,7 @@ public class AdminClient {
 
         }
         catch (Exception e){
-            logger.error(e.toString());
+            logger.error(e.getMessage());
         }
 
 
@@ -87,7 +87,7 @@ enum ActionType {
     CLOSE("close"),
     STATUS("status"),
     TAKEOFF("takeOff"),
-    REORDER("reOrder");
+    REORDER("reorder");
 
     public final String value;
 

@@ -37,7 +37,7 @@ public class FlightTrackingClient {
 
         }
         catch (Exception e){
-            logger.error(e.toString());
+            logger.error(e.getMessage());
         }
 
     }
