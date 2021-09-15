@@ -77,8 +77,7 @@ public class RunRunwayClient {
             // to check first line and skip because it is header
             String line = br.readLine();
 
-            while (line != null) {
-                line = br.readLine();
+            while ((line= br.readLine()) != null) {
                 Flight flight = stringToFlight(line);
                 flightList.add(flight);
             }
