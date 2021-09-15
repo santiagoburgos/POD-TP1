@@ -47,43 +47,50 @@ public class Runway implements Serializable, Comparable<Runway> {
         this.isOpen = false;
     }
 
-    public boolean addFlightToQueue(Flight flight) {
-        return flightsQueue.offer(flight);
+    // Returns copy of the updated flight if successful
+    public Optional<Flight> addFlightToQueue(Flight flight) {
+        if (flight == null) return Optional.empty();
+        Flight toAdd = flight.copy();
+        toAdd.assignRunway(name, flightsQueue.size());
+        return flightsQueue.offer(toAdd) ? Optional.of(toAdd.copy()) : Optional.empty();
     }
 
-    public void updateWaitTime() {
-        flightsQueue.forEach(Flight::increaseWaitTime);
+    // Returns copy of departed flight
+    public Optional<Flight> makeDeparture() {
+        flightsQueue.forEach(f -> {
+            f.increaseWaitTime();
+            if (isOpen)
+                f.decreaseAhead();
+        });
+        Optional<Flight> toDepart = isOpen ? Optional.ofNullable(flightsQueue.poll()) : Optional.empty();
+        toDepart.ifPresent(departures::add);
+        return toDepart.map(Flight::copy);
     }
 
-    public void makeDeparture() {
-        Optional.ofNullable(flightsQueue.poll()).ifPresent(departures::add);
-    }
-
+    // We return copies since once departed the data should be final
     public List<Flight> getDeparted(String airline) {
-        return departures.stream().filter(f -> airline == null || f.getAirline().equals(airline)).collect(Collectors.toList());
+        return departures.stream().filter(f -> airline == null || f.getAirline().equals(airline)).map(Flight::copy).collect(Collectors.toList());
     }
 
+    // Method returns a copy
     public Optional<Flight> findFlight(int flightId) {
-        return flightsQueue.stream().filter(f -> f.getFlightId() == flightId).findFirst();
+        return flightsQueue.stream().filter(f -> f.getFlightId() == flightId).findFirst().map(Flight::copy);
     }
 
+    // Method returns the reference since we are removing it
     public Optional<Flight> removeFlight() {
-        return Optional.ofNullable(flightsQueue.poll());
+        Optional<Flight> removed = Optional.ofNullable(flightsQueue.poll());
+        removed.ifPresent(Flight::clearAssignedRunway);
+        return removed;
     }
 
     public boolean hasFlight(int flightId) {
         return flightsQueue.stream().anyMatch(f -> f.getFlightId() == flightId);
     }
 
-    // This is kinda ugly, see better alternatives
-    public int getAhead(int flightId) {
-        int ahead = 0;
-        for (Flight f: flightsQueue) {
-            if (f.getFlightId() == flightId)
-                return ahead;
-            ahead++;
-        }
-        return ahead;
+    // Flight are copy
+    public List<Flight> getQueued() {
+        return flightsQueue.stream().map(Flight::copy).collect(Collectors.toList());
     }
 
     @Override

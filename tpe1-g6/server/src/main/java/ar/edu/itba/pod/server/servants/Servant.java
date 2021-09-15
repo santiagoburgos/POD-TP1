@@ -16,6 +16,7 @@ import java.rmi.RemoteException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -33,6 +34,11 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
     public Servant() {
         this.airport = new Airport();
         this.trackers = new HashMap<>();
+    }
+
+    public boolean awaitTermination() throws InterruptedException {
+        executor.shutdown();
+        return executor.awaitTermination(30, TimeUnit.MINUTES);
     }
 
     @Override
@@ -100,23 +106,31 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
 
     @Override
     public void takeOffOrder() throws RemoteException {
+        List<Flight> departed = new ArrayList<>();
         writeLock.lock();
         try {
-            List<Runway> rl = airport.getRunways();
-            rl.forEach(Runway::updateWaitTime);
-            rl.stream().filter(Runway::isOpen).forEach(Runway::makeDeparture);
+            airport.getRunways().stream().map(Runway::makeDeparture).filter(Optional::isPresent).map(Optional::get).forEach(departed::add);
+            // Lock downgrading to avoid issues
+            readLock.lock();
         } finally { writeLock.unlock(); }
-    }
+        List<Flight> updated;
+        try {
+            updated = airport.getRunways().stream().filter(Runway::isOpen).map(Runway::getQueued).flatMap(Collection::stream).collect(Collectors.toList());
+        } finally { readLock.unlock(); }
 
-    private void notifyTakeOff() {
-        // TODO
+        departed.forEach(f -> {
+            notifyFlightDeparted(f.getFlightId(), f.getDestCode(), f.getAssignedRunway());
+        });
+
+        updated.forEach(f -> {
+            notifyFlightUpdated(f.getFlightId(), f.getDestCode(), f.getAssignedRunway(), f.getAhead());
+        });
     }
 
     @Override
     public ReorderStatus reorderRunways() throws RemoteException {
         final List<Flight> flights = new ArrayList<>();
-        final List<Flight> failed = new ArrayList<>();
-        final Map<Integer, Runway> toNotify = new HashMap<>();
+        final List<Flight> assigned = new ArrayList<>();
         writeLock.lock();
         try {
             List<Runway> runways = airport.getRunways();
@@ -126,21 +140,19 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
             flights.forEach(f -> {
                 Optional<Runway> availableRunway = runways.stream().filter(Runway::isOpen).filter(r -> f.getMinType().value.compareTo(r.getType().value) <= 0)
                         .min(Comparator.naturalOrder());
-                if (!availableRunway.isPresent() || !availableRunway.get().addFlightToQueue(f))
-                    failed.add(f);
-                else
-                    toNotify.put(f.getFlightId(), availableRunway.get());
+                availableRunway.flatMap(r -> r.addFlightToQueue(f)).ifPresent(uf -> {
+                    assigned.add(uf);
+                    flights.remove(f);
+                });
             });
         } finally { writeLock.unlock(); }
 
         // Notifying the assignments
-        flights.forEach(f -> {
-            Runway r = toNotify.get(f.getFlightId());
-            if (r != null)
-                notifyRunwayAssigned(f.getFlightId(), f.getDestCode(), r.getName(), r.getAhead(f.getFlightId()));
+        assigned.forEach(f -> {
+            notifyRunwayAssigned(f.getFlightId(), f.getDestCode(), f.getAssignedRunway(), f.getAhead());
         });
 
-        return new ReorderStatus(failed, flights.size() - failed.size());
+        return new ReorderStatus(flights, assigned.size());
     }
 
     @Override
@@ -166,35 +178,15 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
 
     @Override
     public void requestRunway(int flightId, String destCode, String airline, RunwayType minType) throws RemoteException, RunwayNotAssignedException {
-        Flight f = new Flight(flightId, destCode, airline, minType);
-        Runway runway;
+        final Flight f = new Flight(flightId, destCode, airline, minType);
+        Flight assigned;
         writeLock.lock();
         try {
-            runway = airport.getRunways().stream().filter(r -> f.getMinType().value.compareTo(r.getType().value) <= 0)
-                    .min(Comparator.naturalOrder()).orElseThrow(RunwayNotAssignedException::new);
-            if (!runway.addFlightToQueue(f))
-                throw new RunwayNotAssignedException();
+            assigned = airport.getRunways().stream().filter(r -> f.getMinType().value.compareTo(r.getType().value) <= 0)
+                    .min(Comparator.naturalOrder()).orElseThrow(RunwayNotAssignedException::new).addFlightToQueue(f).orElseThrow(RunwayNotAssignedException::new);
         } finally { writeLock.unlock(); }
 
-        notifyRunwayAssigned(flightId, destCode, runway.getName(), runway.getAhead(flightId));
-    }
-
-    private void notifyRunwayAssigned(int flightId, String destCode, String runwayName, int ahead) {
-        // Notification part (TODO: make the calls in threads)
-        readLock.lock();
-        List<FlightEventCallback> toNotify;
-        try {
-            toNotify = trackers.getOrDefault(flightId, new ArrayList<>());
-        } finally { readLock.lock(); }
-        for (FlightEventCallback c : toNotify) {
-            executor.submit(() -> {
-                try {
-                    c.flightAssigned(flightId, destCode, runwayName, ahead);
-                } catch (RemoteException ignored) {
-
-                }
-            });
-        }
+        notifyRunwayAssigned(assigned.getFlightId(), assigned.getDestCode(), assigned.getAssignedRunway(), assigned.getAhead());
     }
 
     @Override
@@ -218,5 +210,58 @@ public class Servant implements AdminService, ConsultService, RunwayService, Tra
             List<FlightEventCallback> callbacks = trackers.computeIfAbsent(flightId, k -> new ArrayList<>());
             callbacks.add(callback);
         } finally { writeLock.unlock(); }
+    }
+
+    // Notification handlers
+    private void notifyRunwayAssigned(int flightId, String destCode, String runwayName, int ahead) {
+        // Notification part (TODO: make the calls in threads)
+        readLock.lock();
+        List<FlightEventCallback> toNotify;
+        try {
+            toNotify = trackers.getOrDefault(flightId, new ArrayList<>());
+        } finally { readLock.unlock(); }
+        for (FlightEventCallback c : toNotify) {
+            executor.submit(() -> {
+                try {
+                    c.flightAssigned(flightId, destCode, runwayName, ahead);
+                } catch (RemoteException ignored) {
+
+                }
+            });
+        }
+    }
+
+    private void notifyFlightUpdated(int flightId, String destCode, String runwayName, int ahead) {
+        readLock.lock();
+        List<FlightEventCallback> toNotify;
+        try {
+            toNotify = trackers.getOrDefault(flightId, new ArrayList<>());
+        } finally { readLock.unlock(); }
+        for (FlightEventCallback c: toNotify) {
+            executor.submit(() -> {
+                try {
+                    c.flightUpdated(flightId, destCode, runwayName, ahead);
+                } catch (RemoteException ignored) {
+
+                }
+            });
+        }
+    }
+
+    private void notifyFlightDeparted(int flightId, String destCode, String runwayName) {
+        readLock.lock();
+        List<FlightEventCallback> toNotify;
+        try {
+            toNotify = trackers.getOrDefault(flightId, new ArrayList<>());
+        } finally { readLock.unlock(); }
+        for (FlightEventCallback c: toNotify) {
+            executor.submit(() -> {
+                try {
+                    c.flightDeparted(flightId, destCode, runwayName);
+                } catch (RemoteException ignored) {
+
+                }
+            });
+        }
     }
 }
