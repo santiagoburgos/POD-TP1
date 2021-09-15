@@ -33,8 +33,9 @@ public class RunRunwayClient {
         logger.info("tpe1-g6 Run Runway Client Starting ...");
 
         final RunwayService runwayService;
+        final Registry registry;
         try {
-            final Registry registry = LocateRegistry.getRegistry(serverAddress);
+            registry = LocateRegistry.getRegistry(serverAddress);
             runwayService = (RunwayService) Naming.lookup("runway");
         } catch (Exception e) {
             logger.error(e.getMessage());
