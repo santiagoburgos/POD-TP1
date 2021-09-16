@@ -27,38 +27,42 @@ Descomprimir dichos archivos
 tar -xzf <path al archivo .tar.gz>
 ```
 ### Paso 3: Ejecución del programa
+Verificar para los archivos .sh tener los permisos de ejecución. Caso contrario correr este comando antes de ejecutar
+```bash
+chmod u+x <archivo .sh>
+```
 #### Registry
 ```bash
-cd <directorio descomprimido el tpe1-g6-server-1.0-SNAPSHOT-bin.tar.gz>
+cd <directorio descomprimido de tpe1-g6-server-1.0-SNAPSHOT-bin.tar.gz>
 ./run-registry.sh
 ```
 #### Server
 ```bash
-cd <directorio descomprimido el tpe1-g6-server-1.0-SNAPSHOT-bin.tar.gz>
+cd <directorio descomprimido de tpe1-g6-server-1.0-SNAPSHOT-bin.tar.gz>
 ./run-server.sh
 ```
 #### Clientes
 ##### Cliente de Administración
 ```bash
-cd <directorio descomprimido el tpe1-g6-client-1.0-SNAPSHOT-bin.tar.gz>
+cd <directorio descomprimido de tpe1-g6-client-1.0-SNAPSHOT-bin.tar.gz>
 ./run-management.sh -DserverAddress=xx.xx.xx.xx:yyyy -Daction=actionName
 [ -Drunway=runwayName | -Dcategory=minCategory ]
 ```
 ##### Cliente de Solicitud de Pista
 ```bash
-cd <directorio descomprimido el tpe1-g6-client-1.0-SNAPSHOT-bin.tar.gz>
+cd <directorio descomprimido de tpe1-g6-client-1.0-SNAPSHOT-bin.tar.gz>
 ./run-runway.sh -DserverAddress=xx.xx.xx.xx:yyyy -DinPath=fileName
 
 ```
 ##### Cliente de Seguimiento de Vuelo
 ```bash
-cd <directorio descomprimido el tpe1-g6-client-1.0-SNAPSHOT-bin.tar.gz>
+cd <directorio descomprimido de tpe1-g6-client-1.0-SNAPSHOT-bin.tar.gz>
 ./run-airline.sh -DserverAddress=xx.xx.xx.xx:yyyy -Dairline=airlineName
 -DflightCode=flightCode
 ```
 ##### Cliente de Consulta
 ```bash
-cd <directorio descomprimido el tpe1-g6-client-1.0-SNAPSHOT-bin.tar.gz>
+cd <directorio descomprimido de tpe1-g6-client-1.0-SNAPSHOT-bin.tar.gz>
  ./run-query.sh -DserverAddress=xx.xx.xx.xx:yyyy [ -Dairline=airlineName |
 -Drunway=runwayName ] -DoutPath=fileName
 ```
