@@ -35,11 +35,16 @@ public class RunQueryClient {
             return;
         }
 
+        String[] address = serverAddress.split(":");
+        String host = address[0];
+        String port = address[1];
+
         final ConsultService consultService;
         final Registry registry;
+
         try {
-            registry = LocateRegistry.getRegistry(serverAddress);
-            consultService = (ConsultService) Naming.lookup("consult");
+            registry = LocateRegistry.getRegistry(host, Integer.parseInt(port));
+            consultService = (ConsultService) registry.lookup("consult");
         } catch (Exception e) {
             logger.error(e.toString());
             return;

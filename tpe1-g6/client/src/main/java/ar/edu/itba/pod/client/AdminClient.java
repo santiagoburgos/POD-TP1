@@ -38,8 +38,12 @@ public class AdminClient {
 
             logger.info("tpe1-g6 Client Starting ...");
 
-            final Registry registry = LocateRegistry.getRegistry(serverAddress);
-            final AdminService adminService = (AdminService) Naming.lookup("admin");
+            String[] address = serverAddress.split(":");
+            String host = address[0];
+            String port = address[1];
+
+            final Registry registry = LocateRegistry.getRegistry(host, Integer.parseInt(port));
+            final AdminService adminService = (AdminService) registry.lookup("admin");
 
             logger.info("client Started ...");
 

@@ -25,8 +25,13 @@ public class FlightTrackingClient {
 
             logger.info("tpe1-g6 Flight Tracking Client Starting ...");
 
-            final Registry registry = LocateRegistry.getRegistry(serverAddress);
-            final TrackingService trackingService = (TrackingService) Naming.lookup("tracking");
+            String[] address = serverAddress.split(":");
+            String host = address[0];
+            String port = address[1];
+
+
+            final Registry registry = LocateRegistry.getRegistry(host, Integer.parseInt(port));
+            final TrackingService trackingService = (TrackingService) registry.lookup("tracking");
             final FlightEventCallback flightEventCallback = new FlightEventCallbackImpl();
 
             UnicastRemoteObject.exportObject(flightEventCallback, 0);
