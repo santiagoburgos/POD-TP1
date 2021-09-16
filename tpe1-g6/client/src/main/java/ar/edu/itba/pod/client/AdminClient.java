@@ -77,7 +77,7 @@ public class AdminClient {
 
         }
         catch (Exception e){
-            logger.error(e.getMessage());
+            logger.error(e.toString());
         }
 
 
